@@ -1,0 +1,42 @@
+me: Cross-Platform Build
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure and Compile (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          g++ Chinese/main.cpp -o CycleExam_Windows.exe -std=c++17 -lwinmm
+
+      - name: Configure and Compile (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          g++ Chinese/main.cpp -o CycleExam_Linux -std=c++17
+
+      - name: Upload Windows Artifact
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: CycleExam-Windows
+          path: CycleExam_Windows.exe
+
+      - name: Upload Linux Artifact
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: CycleExam-Linux
+          path: CycleExam_Linux

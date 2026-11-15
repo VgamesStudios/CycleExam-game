@@ -1,0 +1,22 @@
+# IDE 缓存
+.vs/
+.vscode/
+*.user
+CppProperties.json
+*.code-workspace
+
+# 编译产物
+*.exe
+*.o
+*.obj
+*.pdb
+*.ilk
+
+# 大文件与日志
+*.log
+*.zip
+
+# 系统文件
+Thumbs.db
+.DS_Store
+desktop.ini
