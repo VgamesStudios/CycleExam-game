@@ -1,29 +1,56 @@
-#include"function_1.h"
+/***********************************************
+ *This is a game                               * 
+ *But I'm too lazy to write the opening comment*
+ *So I don't really have anything to say       *
+ *May the force be with you                    *
+ ***********************************************/
+
+#include "function_1.h"
 int main()
 {
-    system("chcp 65001");
-    // ç”Ÿæˆæ—¥å¿—æ–‡ä»¶åï¼šYYYYMMDD_HHMMSS.logï¼ˆä»¥ç¨‹åºå¯åŠ¨æ—¶é—´ä¸ºå‡†ï¼‰
-    time_t now = time(nullptr);                 // è·å–å½“å‰æ—¶é—´æˆ³
-    tm* local_time = localtime(&now);           // è½¬æ¢ä¸ºæœ¬åœ°æ—¶é—´ç»“æ„
+        CLEAR_SCREEN;
+    // Éú³ÉÈÕÖ¾ÎÄ¼şÃû£ºYYYYMMDD_HHMMSS.log£¨ÒÔ³ÌĞòÆô¶¯Ê±¼äÎª×¼£©
+    time_t now = time(nullptr);                                            // »ñÈ¡µ±Ç°Ê±¼ä´Á
+    tm* local_time = localtime(&now);                                      // ×ª»»Îª±¾µØÊ±¼ä½á¹¹
     char filename[64];
-    strftime(filename, sizeof(filename), "%Y%m%d_%H%M%S.log", local_time); // æ ¼å¼åŒ–
+    strftime(filename, sizeof(filename), "%Y%m%d_%H%M%S.log", local_time); // ¸ñÊ½»¯
 
-    fout.open(filename);                         // æ‰“å¼€æ–‡ä»¶
+    fout.open(filename);                                                   // ´ò¿ªÎÄ¼ş
     if (!fout.is_open()) 
     {
-        cerr << "è­¦å‘Šï¼šæ— æ³•åˆ›å»ºæ—¥å¿—æ–‡ä»¶ " << filename << endl;
+        cerr << "¾¯¸æ£ºÎŞ·¨´´½¨ÈÕÖ¾ÎÄ¼ş " << filename << endl;
     }
     string current_page = "page_main";
-    while(true)
+    while (true)
     {
         auto &inf = pageMap[current_page];
         inf.function();
-        
-        int switchs = getNum(1, inf.jump_pages.size() - 1);//è·å–é€‰é¡¹
-        if(switchs)
+        int switchs = getNum(1, inf.jump_pages.size() - 1); // »ñÈ¡Ñ¡Ïî
+        if (switchs)
         {
-            system("cls");
+            CLEAR_SCREEN;
         }
+
+        // ÅĞ¶Ïµ±Ç°Ò³ÃæÊÇ·ñÎªÉèÖÃÏîÒ³Ãæ£¨set_0¡¢set_1¡¢set_2...£©
+        static const std::regex setPagePattern(R"(^set_(\d+)$)");
+        std::smatch match;
+        if (std::regex_match(current_page, match, setPagePattern))
+        {
+            // ´ÓÒ³ÃæÃûÖĞÌáÈ¡ÉèÖÃÏîË÷Òı
+            int setIndex = std::stoi(match[1].str());
+            // ×îºóÒ»¸öÑ¡ÏîÓÀÔ¶ÊÇ¡°·µ»Ø¡±£¬ÆäÓàÓĞĞ§Ñ¡Ïî¶¼ÊÓÎª¡°Ó¦ÓÃÉèÖÃ¡±
+            if (switchs >= 1 && switchs < static_cast<int>(inf.jump_pages.size()) - 1)
+            {
+                setApply(setIndex, switchs);
+            }
+        }
+
         current_page = inf.jump_pages[switchs];
+        if (current_page.empty())
+        {
+            current_page = inf.jump_pages[0];
+        }
     }
+    PAUSE_PROGRAM;
+    return 0;
 }

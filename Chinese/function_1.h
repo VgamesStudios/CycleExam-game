@@ -1,31 +1,66 @@
 #ifndef FUNCTION_1_H
 #define FUNCTION_1_H
-//å¯¼å…¥åº“ 
-#include<iostream>
-#include<fstream>
-#include<cstdlib>
-#include<windows.h>
-#include<limits>
-#include<string>
-#include<map>
-#include<vector>
-#include<functional>
-#include<variant>
-#include<ctime>  
-//å£°æ˜å‘½åç©ºé—´ 
+
+// µ¼Èë¿â
+#include <regex>
+#include <iostream>
+#include <fstream>
+#include <cstdlib>
+#include <limits>
+#include <string>
+#include <map>
+#include <vector>
+#include <functional>
+#include <variant>
+#include <ctime>
+#include <thread>
+#include <chrono>
+#include <iomanip>
+
+// µ¼Èë×Ô¶¨Òå¿â
+#include "set_1.h"
+
+// µ¼ÈëÆ½Ì¨×¨Êô¿â
+#ifdef _WIN32
+    #include <windows.h>
+    #include <mmsystem.h>
+    #define CLEAR_SCREEN system("cls")
+    #define PAUSE_PROGRAM system("pause")
+    // ÒÔMSVC·½Ê½Á´½Ó¿â
+    #ifdef _MSC_VER
+        #pragma comment(lib, "winmm.lib")
+    #endif
+#else
+    #define PlaySound(a, b, c) ((void)0)
+    #define TEXT(a) a
+    #define SND_FILENAME 0
+    #define SND_ASYNC 0
+    #define SND_LOOP 0
+    #define CLEAR_SCREEN system("clear")
+    #define PAUSE_PROGRAM do { cin.ignore(numeric_limits<streamsize>::max(), '\n');cout << "°´ÈÎÒâ¼ü¼ÌĞø..." << endl; cin.get(); } while(0)
+#endif
+
+// ÉùÃ÷ÃüÃû¿Õ¼ä
 using namespace std;
-//å£°æ˜å‡½æ•°
-int getNum(int min,int max);//è¾“å…¥æ ¡éªŒå‡½æ•°
-void page_main();//æ¸¸æˆä¸»èœå•
-void page_intro();//æ¸¸æˆç®€ä»‹
-void page_setting();//æ¸¸æˆè®¾ç½®
-void page_changeLog(); //ç‰ˆæœ¬æ›´æ–°æ—¥å¿—
-void page_1();//æ¸¸æˆå¼€å§‹å‰§æƒ…
-void page_2();//ç¡è¿‡å¤´äº†
-void page_3();//ç»§ç»­ç¡è§‰1
-void page_4();//ç»§ç»­ç¡è§‰2
-void page_5();//ç»“å±€ï¼šä¸é†’äººå®¤ï¼ˆBed End 1ï¼‰
-void page_6();
+// ÉùÃ÷º¯Êı
+int getNum(int min, int max); // ÊäÈëĞ£Ñéº¯Êı
+void autoRestarter();         // ×Ô¶¯ÖØÆôº¯Êı
+void page_main();             // ÓÎÏ·Ö÷²Ëµ¥
+void page_exit();             // ÍË³öÓÎÏ· 
+void page_intro();            // ÓÎÏ·¼ò½é
+void page_setting();          // ÓÎÏ·ÉèÖÃ
+void page_changeLog();        // °æ±¾¸üĞÂÈÕÖ¾
+void set_0();                 // ÉèÖÃ_ÓÎÏ·ÄÑ¶È
+void set_1();                 // ÉèÖÃ_DebugÄ£Ê½
+void chapter_1();             // µÚÒ»ÕÂ_¼Ò
+void chapter_2();             // µÚ¶şÕÂ_Â·ÉÏ
+void chapter_3();             // µÚÈıÕÂ_Ñ§Ğ£
+void page_1();                // ÓÎÏ·¿ªÊ¼¾çÇé
+void page_2();                // Ë¯¹ıÍ·ÁË
+void page_3();                // ¼ÌĞøË¯¾õ1
+void page_4();                // ¼ÌĞøË¯¾õ2
+void page_5();                // ½á¾Ö£º²»ĞÑÈËÊÒ£¨Bed End 1£©
+void page_6();                // Ç°ÍùÑ§Ğ£
 void page_7();
 void page_8();
 void page_9();
@@ -120,186 +155,377 @@ void page_97();
 void page_98();
 void page_99();
 void page_100();
-//å®šä¹‰å…¨å±€å˜é‡ 
-int switchs;
-int sleepSubjects=0;
-bool inPageMain=true;
-ofstream fout; // å…¨å±€æ–‡ä»¶è¾“å‡ºæµ
-//å®šä¹‰å‡½æ•°åŠç»“æ„ä½“
-struct PageInformation{
-    std::function<void ()> function;
+// ¶¨ÒåÈ«¾Ö±äÁ¿
+int switchs = 0;
+int sleepSubjects = 0;
+bool inPageMain = true;
+bool autoRestarted = false;
+int setProject = 0;
+int setSwitch = 0;
+bool debugMode = false; 
+ofstream fout; // È«¾ÖÎÄ¼şÊä³öÁ÷
+// ¶¨Òåº¯Êı¼°½á¹¹Ìå
+struct PageInformation
+{
+    std::function<void()> function;
     std::vector<std::string> jump_pages;
 };
-// ä»£ç†ç±»ï¼ŒåŒæ—¶æŒæœ‰ cout å’Œ fout ä¸¤ä¸ªè¾“å‡ºæµ
-class CFOut {
+/// ´úÀíÀà£¬Í¬Ê±³ÖÓĞ cout ºÍ fout Á½¸öÊä³öÁ÷£¬²¢ÔÚÃ¿ĞĞĞĞÊ×¼ÓÊ±¼ä´ÁºÍ±êÇ©
+class CFOut
+{
 private:
-    ostream& os1;
-    ostream& os2;
-public:
-    CFOut(ostream& o1,ostream& o2) : os1(o1), os2(o2) {}
+    ostream &os1;      // ¿ØÖÆÌ¨Á÷ (cout)
+    ostream &os2;      // ÎÄ¼şÁ÷ (fout)
+    std::string tag;   // ÈÕÖ¾±êÇ©
+    bool isDebugMsg;   // ÊÇ·ñÎªµ÷ÊÔÀàÏûÏ¢£¨INPUT/STATE/SYS£©
 
-    // æ³›å‹ operator<<ï¼Œå¤„ç†æ‰€æœ‰å¯è¾“å‡ºç±»å‹
-    template<typename T>
-    CFOut& operator<<(const T& val) {
-        os1<<val;
-        os2<<val;
+    // È«¾ÖĞĞÊ×±êÖ¾£ºÎª true ±íÊ¾ÏÂÒ»¸öÊä³öĞèÒª´òÊ±¼ä´Á
+    static bool &atLineStart()
+    {
+        static bool flag = true;
+        return flag;
+    }
+
+    // Éú³É [HH:MM:SS.mmm] ĞÎÊ½µÄÊ±¼ä´Á×Ö·û´®
+    static std::string getTimestamp()
+    {
+        auto now = chrono::system_clock::now();
+        auto ms = chrono::duration_cast<chrono::milliseconds>(
+                      now.time_since_epoch()) %
+                  1000;
+        time_t t = chrono::system_clock::to_time_t(now);
+        tm *lt = localtime(&t);
+
+        char buf[16];
+        strftime(buf, sizeof(buf), "[%H:%M:%S", lt);
+
+        ostringstream oss;
+        oss << buf << "." << setfill('0') << setw(3) << ms.count() << "] ";
+        return oss.str();
+    }
+
+    // Èôµ±Ç°´¦ÓÚĞĞÊ×£¬ÏÈÊä³öÊ±¼ä´ÁºÍ±êÇ©
+    void ensureTimestamp()
+    {
+        if (atLineStart())
+        {
+            std::string ts = getTimestamp();
+
+            // µ÷ÊÔÀàÏûÏ¢ ÇÒ debugMode ¿ªÆô ¡ú ¿ØÖÆÌ¨ÏÔÊ¾´ø±êÇ©µÄÊ±¼ä´Á
+            if (isDebugMsg && debugMode)
+            {
+                os1 << ts << tag << " ";
+            }
+            // ÆÕÍ¨ÓÎÏ·Êä³ö£¨cfout£©ÔÚ¿ØÖÆÌ¨²»¼ÓÈÎºÎÇ°×º£¨±£³Ö¸É¾»£©
+
+            // ÎÄ¼şÁ÷£ºÓÀÔ¶¶¼Ğ´ Ê±¼ä´Á + ±êÇ©
+            os2 << ts << tag << " ";
+
+            atLineStart() = false;
+        }
+    }
+
+public:
+    // ¹¹Ôìº¯Êı£ºt = ±êÇ©£»dbg = ÊÇ·ñÊôÓÚµ÷ÊÔÀàÏûÏ¢
+    CFOut(ostream &o1, ostream &o2,
+          const std::string &t = "[Output/INFO]",
+          bool dbg = false)
+        : os1(o1), os2(o2), tag(t), isDebugMsg(dbg) {}
+
+    // ·ºĞÍ operator<<£¬´¦ÀíËùÓĞ¿ÉÊä³öÀàĞÍ
+    template <typename T>
+    CFOut &operator<<(const T &val)
+    {
+        ensureTimestamp();
+
+        // ÆÕÍ¨ÏûÏ¢£¨cfout£©ÓÀÔ¶Ğ´¿ØÖÆÌ¨£»µ÷ÊÔÏûÏ¢½öµ± debugMode ¿ªÆôÊ±Ğ´¿ØÖÆÌ¨
+        if (!isDebugMsg || debugMode)
+        {
+            os1 << val;
+        }
+        os2 << val;
+
+        using U = std::decay_t<T>;
+        if constexpr (std::is_convertible_v<U, std::string>)
+        {
+            std::string s = val;
+            if (!s.empty() && s.back() == '\n')
+                atLineStart() = true;
+        }
+        else if constexpr (std::is_same_v<U, char>)
+        {
+            if (val == '\n')
+                atLineStart() = true;
+        }
         return *this;
     }
 
-    // ä¸“é—¨å¤„ç† endl ç­‰æ“çºµç¬¦
-    CFOut& operator<<(ostream& (*manip)(ostream&)) {
-        os1<<manip;
-        os2<<manip;
+    // ×¨ÃÅ´¦Àí endl µÈ²Ù×İ·û
+    CFOut &operator<<(ostream &(*manip)(ostream &))
+    {
+        ensureTimestamp();
+
+        if (!isDebugMsg || debugMode)
+        {
+            os1 << manip;
+        }
+        os2 << manip;
+
+        if (manip == static_cast<ostream &(*)(ostream &)>(std::endl))
+            atLineStart() = true;
+
         return *this;
     }
 };
-// å®å®šä¹‰ï¼šcfout å±•å¼€ä¸ºä¸´æ—¶ CFOut å¯¹è±¡ï¼Œç»‘å®š cout å’Œ fout
-#define cfout CFOut(cout, fout)
-int getNum(int min,int max) //è¾“å…¥æ ¡éªŒå‡½æ•°ï¼ˆå‚æ•°ä¸ºå¯è¾“å…¥çš„æœ€å°å€¼å’Œæœ€å¤§å€¼ï¼‰
+// »ù´¡Êä³öºê
+#define cfout    CFOut(cout, fout)
+// µ÷ÊÔÀàºê£¨½öµ± debugMode == true Ê±Êä³öµ½¿ØÖÆÌ¨£¬ÎÄ¼şÊ¼ÖÕ¼ÇÂ¼£©
+#define cfinputI CFOut(cout, fout, "[INPUT/INFO]",  true)
+#define cfstateI CFOut(cout, fout, "[STATE/INFO]",  true)
+#define cfsysI   CFOut(cout, fout, "[SYS/INFO]  ",  true)
+#define cfinputW CFOut(cout, fout, "[INPUT/WARN]",  true)
+#define cfstateW CFOut(cout, fout, "[STATE/WARN]",  true)
+#define cfsysW   CFOut(cout, fout, "[SYS/WARN]  ",  true)
+#define cfinputE CFOut(cout, fout, "[INPUT/ERROR]", true)
+#define cfstateE CFOut(cout, fout, "[STATE/ERROR]", true)
+#define cfsysE   CFOut(cout, fout, "[SYS/ERROR] ",  true)
+int getNum(int min, int max) // ÊäÈëĞ£Ñéº¯Êı£¨²ÎÊıÎª¿ÉÊäÈëµÄ×îĞ¡ÖµºÍ×î´óÖµ£©
 {
     int n;
-    // è¾“å…¥ä¸æ˜¯æ•°å­— æˆ– è¶…å‡ºèŒƒå›´ â†’ é‡æ–°è¾“å…¥
-    if(!(cin>>n)||n<min||n>max)
-	{
-        cin.clear(); // é‡ç½®è¾“å…¥ç¼“å†²åŒº
-        cin.ignore(numeric_limits<streamsize>::max(),'\n'); // ä¸¢å¼ƒé”™è¯¯è¾“å…¥
-        system("cls");
-        cfout<<"åªèƒ½è¾“å…¥"<<min<<"-"<<max<<"çš„æ•°å­—ï¼\n\n";
-        return 0; // è¿”å›0æ ‡è®°è¾“å…¥é”™è¯¯ï¼ˆæ‰§è¡Œdefaultï¼‰
+    // ÊäÈë²»ÊÇÊı×Ö »ò ³¬³ö·¶Î§ ¡ú ÖØĞÂÊäÈë
+    if (!(cin >> n) || n < min || n > max)
+    {
+        cin.clear();                                         // ÖØÖÃÊäÈë»º³åÇø
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // ¶ªÆú´íÎóÊäÈë
+        CLEAR_SCREEN;
+        cfout << "Ö»ÄÜÊäÈë" << min << "-" << max << "µÄÊı×Ö£¡\n\n";
+        return 0; // ·µ»Ø0±ê¼ÇÊäÈë´íÎó£¨Ö´ĞĞdefault£©
     }
-    return n; // è¾“å…¥æœ‰æ•ˆåˆ™è¿”å›é€‰é¡¹ç¼–å·
+    return n; // ÊäÈëÓĞĞ§Ôò·µ»ØÑ¡Ïî±àºÅ
 }
-void page_main()//æ¸¸æˆä¸»èœå• 
+void autoRestarter()
 {
-	inPageMain=true;
-	cfout<<"********************\n";
-    cfout<<"*                  *\n";
-    cfout<<"*     è½®å›ç­”å·     *\n";
-    cfout<<"*                  *\n";
-    cfout<<"*       26w11a pre2*\n";
-    cfout<<"********************\n";
-    cfout<<"[1]å¼€å§‹æ¸¸æˆ[2]æ¸¸æˆç®€ä»‹[3]æ¸¸æˆè®¾ç½®[4]æ›´æ–°æ—¥å¿—[5]é€€å‡ºæ¸¸æˆ\n";
+    if (!autoRestarted)
+    {
+        autoRestarted = true;
+        thread
+        ([](){
+            while(true)
+            {
+                this_thread::sleep_for(chrono::minutes(autoRestarterMinutes));
+                if (!inPageMain&&autoRestart)
+                {
+                    cfout<<"1"<<endl;
+                }
+            }
+        })
+            .detach();
+        /*thread
+        ([](){
+            while(true)
+            {
+                this_thread::sleep_for(chrono::seconds(1));
+                cfout<<"Hello World"<<endl;
+            } 
+        })
+            .detach();*/
+    }
+}
+void page_main() // ÓÎÏ·Ö÷²Ëµ¥
+{
+    //PlaySound(TEXT("./assets/audio/CycleExam.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
+    inPageMain = true;
+    cfout << "********************\n";
+    cfout << "*                  *\n";
+    cfout << "*     ÂÖ»Ø´ğ¾í     *\n";
+    cfout << "*                  *\n";
+    cfout << "*            26w20a*\n";
+    cfout << "********************\n";
+    cfout << "[1]¿ªÊ¼ÓÎÏ· [2]ÓÎÏ·¼ò½é [3]ÓÎÏ·ÉèÖÃ [4]¸üĞÂÈÕÖ¾ [5]ÍË³öÓÎÏ·\n";
 }
 void page_exit()
 {
+    PlaySound(NULL, NULL, 0);
     if(inPageMain)
-	{
-		cfout<<"æ¸¸æˆå·²æ­£å¸¸é€€å‡ºï¼Œé€€å‡ºä»£ç ä¸º0";
-		exit(0);
-	} 
-}
-void page_intro()//æ¸¸æˆç®€ä»‹ 
-{
-	inPageMain=false;
-	cfout<<"æˆ‘æ˜¯ç®€ä»‹ï¼Œä½†ä½œè€…æ‡’çš„å†™ç®€ä»‹ï¼Œå—¯å¯¹\n";
-    cfout<<"[1]å›åˆ°ä¸»èœå•\n";
-}
-void page_setting()//æ¸¸æˆè®¾ç½® 
-{
-	inPageMain=false;
-	cfout<<"æˆ‘æ˜¯è®¾ç½®ï¼Œä½†ä½œè€…è¿˜æ²¡æƒ³å¥½æ€ä¹ˆåšåšè®¾ç½®ï¼Œå—¯å¯¹\n";
-    cfout<<"[1]å›åˆ°ä¸»èœå•\n";
-}
-void page_changeLog()//ç‰ˆæœ¬æ›´æ–°æ—¥å¿—
-{
-    inPageMain=false;
-	string relativePath="changeLog.md"; 
-    char absolutePath[MAX_PATH]={0};
-    DWORD pathLen=GetFullPathNameA(relativePath.c_str(),MAX_PATH,absolutePath,NULL);//ç›¸å¯¹è·¯å¾„->ç»å¯¹è·¯å¾„
-    ifstream logFile(relativePath); //å°è¯•æ‰“å¼€æ—¥å¿—æ–‡ä»¶
-    string line; 
-    if (logFile.is_open()) //åˆ¤æ–­æ—¥å¿—æ–‡ä»¶æ˜¯å¦æˆåŠŸæ‰“å¼€
-	{ 
-        cfout<<"==================== ç‰ˆæœ¬æ›´æ–°æ—¥å¿— ====================\n";
-        while (getline(logFile,line)) //é€è¡Œè¯»å–æ—¥å¿—å†…å®¹
-		{
-            cfout<<line<<endl; 
-        }
-        logFile.close(); 
-    } 
-	else//æ— æ³•æ‰“å¼€æ—¥å¿—æ–‡ä»¶
-	{ 
-        cfout<<"æ— æ³•è¯»å–æ›´æ–°æ—¥å¿—æ–‡ä»¶ï¼\n";
-        if (pathLen>0) 
-		{
-            cfout<<"æ–‡ä»¶ç»å¯¹è·¯å¾„ï¼š"<<absolutePath<<"\n";
-        } 
-		else 
-		{ 
-            cfout<<"æ–‡ä»¶ç›¸å¯¹è·¯å¾„ï¼š"<<relativePath<<"\n";
-        }
-        cfout<<"è¯·æ£€æŸ¥æ›´æ–°æ—¥å¿—(changeLog.md)æ˜¯å¦å­˜åœ¨äºä¸»ç¨‹åº(main.exe)åŒç›®å½•ä¸‹æˆ–å·²é€šè¿‡å…¶ä»–é€”å¾„æ‰“å¼€ï¼\n";
+    {
+        cfout << "´æµµÒÑ±£´æ\n";
+        cfout << "ÓÎÏ·ÒÑÕı³£ÍË³ö£¬ÍË³ö´úÂëÎª0x00000000\n";
+        PAUSE_PROGRAM;
+        exit(0x00000000);
     }
-    cfout<<"==================================================\n";
-    cfout<<"[1]å›åˆ°ä¸»èœå•\n";
 }
-void page_1()//æ¸¸æˆå¼€å§‹å‰§æƒ… 
+void page_intro() // ÓÎÏ·¼ò½é
 {
-	inPageMain=false;
-	cfout<<"å®é“ƒé“ƒé“ƒï¼\n";
-    cfout<<"é—¹é’Ÿå“äº†ï¼Œä½ ä»ç¡æ¢¦ä¸­é†’æ¥\n";
-    cfout<<"ä½ ä¼¸äº†ä¸ªæ‡’è…°ï¼Œçå¼€äº†çœ¼\n";
-    cfout<<"ä¸€ä¸ªç¾ä¸½çš„æ—©æ™¨ï¼Œä½†å¤©é˜´é˜´æ²‰æ²‰çš„ï¼Œåƒæ˜¯è¦ä¸‹é›¨ä¸€æ ·\n";
-    cfout<<"ä½ çªç„¶æƒ³èµ·æ¥ä»Šå¤©è¦ä¸­è€ƒäº†ï¼Œä½†è¿˜æœ‰åŠå°æ—¶å°±è¦å¼€è€ƒç¬¬ä¸€ç§‘äº†ï¼Œä½ å†³å®š\n";
-    cfout<<"[1]å†ç¡ä¸€ä¼š [2]ç«‹åˆ»å‰å¾€å­¦æ ¡\n";
+    inPageMain = false;
+    cfout << "¡¶ÂÖ»Ø´ğ¾í¡·ÊÇÒ»¿î»ùÓÚÎÄ×ÖµÄÑ¡ÔñÃ°ÏÕÓÎÏ·£¬\n";
+    cfout << "Íæ¼Ò½«°çÑİÒ»Ãû¼´½«ÃæÁÙÖĞ¿¼µÄÑ§Éú¡£\n";
+    cfout << "´ÓÒ»¸öÆÕÍ¨µÄÔç³¿¿ªÊ¼£¬Äã½«Ãæ¶ÔÒ»ÏµÁĞ¹Ø¼ü¾ö²ß£¬\n";
+    cfout << "Ã¿Ò»¸öÑ¡Ôñ¶¼¿ÉÄÜÓ°Ïì¹ÊÊÂµÄ×ßÏò¡£\n";
+    cfout << "ÓÎÏ·ÒÔ¼ò½àµÄÎÄ×ÖĞğÊöºÍ·ÖÖ§Ñ¡ÏîÎªºËĞÄ£¬\n";
+    cfout << "Ì½Ë÷ÈÕ³£Éú»îÖĞµÄ¾ñÔñÓëºó¹û¡£\n";
+    cfout << "ÊÊºÏÏ²»¶¡°ÇáËÉ¡±»¥¶¯¹ÊÊÂµÄÍæ¼ÒÌåÑé£¬\n";
+    cfout << "µ±Ç°°æ±¾ÎªÔ¤ÀÀ°æ£¬²¿·Ö¾çÇéÈÔÔÚ¿ª·¢ÖĞ¡£\n";
+    cfout << "[1]»Øµ½Ö÷²Ëµ¥\n";
 }
-void page_2()//ç¡è¿‡å¤´äº†
+void page_setting() // ÓÎÏ·ÉèÖÃ
 {
-	sleepSubjects++;
-	cfout<<"ä½ å·²ç»ç¡è¿‡ä¸€ä¸ªç§‘ç›®äº†\n";
-    cfout<<"è¶ç°åœ¨èµ·åºŠå»è€ƒè¯•ä¹Ÿè®¸è¿˜èƒ½æ‹¿ä¸€äº›åˆ†æ•°\n";
-    cfout<<"ä½†ä½ åˆæƒ³ç€è¿™åºŠå¦‚æ­¤èˆ’æœï¼Œè€Œä¸”å°±ç®—èµ·åºŠä¹Ÿä¸ä¼šæœ‰å¥½çš„æˆç»©ï¼Œä½ å†³å®š\n";
-    cfout<<"[1]ç»§ç»­ç¡è§‰ [2]ç«‹åˆ»å‰å¾€å­¦æ ¡\n";
+    inPageMain = false;
+    cfout << "set_0:ÓÎÏ·ÄÑ¶È\n";
+    cfout << "set_1:DebugÄ£Ê½\n";
+    cfout << "[1]»Øµ½Ö÷²Ëµ¥ [ÉèÖÃÏî±àºÅ+2]¶ÔÓ¦ÉèÖÃÏî\n";
 }
-void page_3()//ç»§ç»­ç¡è§‰1
+void set_0() // ÉèÖÃ_ÓÎÏ·ÄÑ¶È
 {
-	sleepSubjects++;
-	cfout<<"ä½ çœŸæ˜¯ä¸ªç¡ç¥\n";
-    cfout<<"å‰å°¼æ–¯ä¸–ç•Œçºªå½•éƒ½åº”è¯¥ç»™ä½ é¢ä¸ªå¥–\n";
-    cfout<<"ä½†ç°åœ¨è¯´è¿™äº›åˆæœ‰ä»€ä¹ˆç”¨å‘¢\n";
-    cfout<<"ä½ åˆç¡è¿‡äº†ä¸€ä¸ªç§‘ç›®\n";
-    cfout<<"ç°åœ¨å·²ç»æ²¡æœ‰ä»€ä¹ˆå»è€ƒè¯•çš„æ„ä¹‰äº†ï¼Œä½ å†³å®š\n";
-    cfout<<"[1]ç»§ç»­ç¡è§‰ [2]ç«‹åˆ»å‰å¾€å­¦æ ¡\n";
+    setProject = 0;
+    cfout << "±¾ÉèÖÃÏîÓÃÓÚµ÷ÕûÓÎÏ·ÄÑ¶È\n";
+    cfout << "µ±Ç°°æ±¾ÓÎÏ·ÄÑ¶È½öÓ°Ïì×Ô¶¯Ñ­»·Ê±¼ä\n";
+    cfout << "ÄÑ¶ÈÔ½¸ß£¬×Ô¶¯Ñ­»·Ê±¼äÔ½¶Ì\n";
+    cfout << "¼«¼òµ¥£º²»×Ô¶¯Ñ­»·\n";
+    cfout << "¼òµ¥£ºÃ¿30·ÖÖÓ×Ô¶¯Ñ­»·Ò»´Î\n";
+    cfout << "ÖĞµÈ£ºÃ¿20·ÖÖÓ×Ô¶¯Ñ­»·Ò»´Î\n";
+    cfout << "À§ÄÑ£ºÃ¿10·ÖÖÓ×Ô¶¯Ñ­»·Ò»´Î\n";
+    cfout << "ÇëÑ¡ÔñÓÎÏ·ÄÑ¶È£º\n";
+    cfout << "µ±Ç°ÓÎÏ·ÄÑ¶È£º";
+    switch(setProjects[setProject])
+    {
+        case 0: cfout << "Î´ÉèÖÃ\n"; break;
+        case 1: cfout << "¼«¼òµ¥\n"; break;
+        case 2: cfout << "¼òµ¥\n"; break;
+        case 3: cfout << "ÖĞµÈ\n"; break;
+        case 4: cfout << "À§ÄÑ\n"; break;
+        default: cfout << "Î´Öª\n"; break;
+    }
+    cfout << "[1]Ñ¡Ôñ¼«¼òµ¥ÄÑ¶È [2]Ñ¡Ôñ¼òµ¥ÄÑ¶È [3]Ñ¡ÔñÖĞµÈÄÑ¶È [4]Ñ¡ÔñÀ§ÄÑÄÑ¶È [5]·µ»ØÉèÖÃ²Ëµ¥\n";
 }
-void page_4()//ç»§ç»­ç¡è§‰2
+void set_1() // ÉèÖÃ_DebugÄ£Ê½
 {
-	sleepSubjects++;
-	cfout<<"ç¡ç¥ï¼Œä½ èµ¢äº†\n";
-    cfout<<"ä¸‰åœºè€ƒè¯•éƒ½å·²ç»ç»“æŸäº†\n";
-    cfout<<"è€Œä½ å´è¿˜åœ¨åºŠä¸Šèˆ’æœçš„èººç€\n";
-    cfout<<"ç°åœ¨ç»å¯¹æ²¡æœ‰å†å»è€ƒè¯•çš„å¿…è¦æ€§äº†ï¼Œä½ å†³å®š\n";
-    cfout<<"[1]ç»§ç»­ç¡è§‰ [2]ç«‹åˆ»å‰å¾€å­¦æ ¡\n";
+    cfout << "±¾ÉèÖÃÏîÓÃÓÚ¿ªÆô/¹Ø±Õ Debug Ä£Ê½\n";
+    cfout << "¿ªÆôºó£¬¿ØÖÆÌ¨»áÊµÊ±ÏÔÊ¾ INPUT / STATE / SYS ÀàÈÕÖ¾\n";
+    cfout << "¹Ø±Õºó£¬ÕâĞ©ÈÕÖ¾Ö»¼ÇÂ¼µ½ .log ÎÄ¼ş£¬²»Ó°ÏìÓÎÏ·½çÃæ\n";
+    cfout << "µ±Ç°×´Ì¬£º" << (debugMode ? "ÒÑ¿ªÆô" : "ÒÑ¹Ø±Õ") << "\n";
+    cfout << "[1]¿ªÆô [2]¹Ø±Õ [3]·µ»ØÉèÖÃ²Ëµ¥\n";
 }
-void page_5()//ç»“å±€ï¼šä¸é†’äººå®¤ï¼ˆBed End 1ï¼‰
+void page_changeLog() // °æ±¾¸üĞÂÈÕÖ¾
 {
-	cfout<<"ä½ ä¸ç¦å¯¹è‡ªå·±å‘é—®\n";
-    cfout<<"è¿™æ ·åšæœ‰ä»€ä¹ˆæ„ä¹‰å—\n";
-    cfout<<"ä¸å…¶æµªè´¹æ—¶é—´ï¼Œä¸å¦‚å»è€ƒåœºéšä¾¿è’™ä¸¤é“é¢˜\n";
-    cfout<<"ä½†ç°åœ¨è¯´ä»€ä¹ˆä¹Ÿæ²¡ç”¨äº†\n";
-    cfout<<"è€ƒè¯•å·²ç»ç»“æŸäº†ï¼Œä½ å®Œå…¨æ²¡æœ‰åšå“ªæ€•ä¸€é¢˜\n";
-    cfout<<"ä½ çªç„¶æƒ³èµ·ä½ ä¹‹å‰ç©çš„æŸä¸ªå…­å­—æ¸¸æˆçš„ä¸€å¥è¯...\n";
-    cfout<<"--------------------------------------------------\n";
-	cfout<<"----------è¾¾æˆç»“å±€Bed End 1 ã€ä¸é†’äººå®¤ã€‘----------\n";
-	cfout<<"--------æ„¿æ­¤è¡Œï¼Œç»ˆæŠµç¾¤æ˜Ÿï¼Œä¸”å®¹æˆ‘ï¼Œå†ç¡ä¸€ä¼š--------\n";
-	cfout<<"--------------------------------------------------\n";
-	cfout<<"[1]å›åˆ°ä¸»èœå•\n";
+    inPageMain = false;
+    string relativePath = "changeLog.md";
+    char absolutePath[512] = {0}; // Í³Ò»ÓÃ 512 Ìæ´ú MAX_PATH
+    #ifdef _WIN32
+        DWORD pathLen = GetFullPathNameA(relativePath.c_str(), sizeof(absolutePath), absolutePath, NULL);
+    #else
+        // Linux ÏÂ»ñÈ¡¾ø¶ÔÂ·¾¶
+        char* res = realpath(relativePath.c_str(), absolutePath);
+        int pathLen = res ? 1 : 0;
+    #endif
+    ifstream logFile(relativePath);
+    string line;
+    if (logFile.is_open()) // ÅĞ¶ÏÈÕÖ¾ÎÄ¼şÊÇ·ñ³É¹¦´ò¿ª
+    {
+        cfout << "==================== °æ±¾¸üĞÂÈÕÖ¾ ====================\n";
+        while (getline(logFile, line)) // ÖğĞĞ¶ÁÈ¡ÈÕÖ¾ÄÚÈİ
+        {
+            cfout << line << endl;
+        }
+        logFile.close();
+    }
+    else // ÎŞ·¨´ò¿ªÈÕÖ¾ÎÄ¼ş
+    {
+        cfout << "ÎŞ·¨¶ÁÈ¡¸üĞÂÈÕÖ¾ÎÄ¼ş£¡\n";
+        if (pathLen > 0)
+        {
+            cfout << "ÎÄ¼ş¾ø¶ÔÂ·¾¶£º" << absolutePath << "\n";
+        }
+        else
+        {
+            cfout << "ÎÄ¼şÏà¶ÔÂ·¾¶£º" << relativePath << "\n";
+        }
+        cfout << "Çë¼ì²é¸üĞÂÈÕÖ¾(changeLog.md)ÊÇ·ñ´æÔÚÓÚÖ÷³ÌĞò(main.exe)Í¬Ä¿Â¼ÏÂ»òÒÑÍ¨¹ıÆäËûÍ¾¾¶´ò¿ª£¡\n";
+    }
+    cfout << "==================================================\n";
+    cfout << "[1]»Øµ½Ö÷²Ëµ¥\n";
 }
-/*void page_6()//å‰å¾€å­¦æ ¡
+void chapter_1() // µÚÒ»ÕÂ_¼Ò
 {
-	cfout<<"\n";
+    inPageMain = false;
+    cfout << "                        µÚÒ»ÕÂ ¼Ò                  \n";
+    cfout << "--------------------------------------------------\n";
+    cfout << "                     ÖÜÎ§ºÜ°²¾²                    \n";
+    cfout << "    ÄãÄÜÌıµ½µÄ£¬Ö»ÓĞÇ½ÉÏÀÏ¾É¹ÒÖÓÄÇÂÔÏÔ³ÁÖØµÄµÎ´ğÉù    \n";
+    cfout << "           ¿ÕÆøÀïÓĞÒ»¹ÉÊôÓÚÒõÓêÌìµÄ³±ÊªÎ¶µÀ          \n";
+    cfout << "        ÄãÔÚÕâ¸öÊìÏ¤ÓÖÂÔÏÔÑ¹ÒÖµÄ·¿¼äÀï£¬±Õ×ÅÑÛ        \n";
+    cfout << "                      Í»È»¡ª¡ª                       \n";
+    cfout << "                      [1]¼ÌĞø                      \n";
+}
+void page_1() // ÓÎÏ·¿ªÊ¼¾çÇé
+{
+    inPageMain = false;
+    autoRestarter();
+    cfout << "¶£ÁåÁåÁå£¡\n";
+    cfout << "ÄÖÖÓÏìÁË£¬Äã´ÓË¯ÃÎÖĞĞÑÀ´\n";
+    cfout << "ÄãÉìÁË¸öÀÁÑü£¬Õö¿ªÁËÑÛ\n";
+    cfout << "Ò»¸öÃÀÀöµÄÔç³¿£¬µ«ÌìÒõÒõ³Á³ÁµÄ£¬ÏñÊÇÒªÏÂÓêÒ»Ñù\n";
+    cfout << "ÄãÍ»È»ÏëÆğÀ´½ñÌìÒªÖĞ¿¼ÁË£¬µ«»¹ÓĞ°ëĞ¡Ê±¾ÍÒª¿ª¿¼µÚÒ»¿ÆÁË£¬Äã¾ö¶¨\n";
+    cfout << "[1]ÔÙË¯Ò»»á [2]Á¢¿ÌÇ°ÍùÑ§Ğ£\n";
+}
+void page_2() // Ë¯¹ıÍ·ÁË
+{
+    sleepSubjects++;
+    cfout << "ÄãÒÑ¾­Ë¯¹ıÒ»¸ö¿ÆÄ¿ÁË\n";
+    cfout << "³ÃÏÖÔÚÆğ´²È¥¿¼ÊÔÒ²Ğí»¹ÄÜÄÃÒ»Ğ©·ÖÊı\n";
+    cfout << "µ«ÄãÓÖÏë×ÅÕâ´²Èç´ËÊæ·ş£¬¶øÇÒ¾ÍËãÆğ´²Ò²²»»áÓĞºÃµÄ³É¼¨£¬Äã¾ö¶¨\n";
+    cfout << "[1]¼ÌĞøË¯¾õ [2]Á¢¿ÌÇ°ÍùÑ§Ğ£\n";
+}
+void page_3() // ¼ÌĞøË¯¾õ1
+{
+    sleepSubjects++;
+    cfout << "ÄãÕæÊÇ¸öË¯Éñ\n";
+    cfout << "¼ªÄáË¹ÊÀ½ç¼ÍÂ¼¶¼Ó¦¸Ã¸øÄã°ä¸ö½±\n";
+    cfout << "µ«ÏÖÔÚËµÕâĞ©ÓÖÓĞÊ²Ã´ÓÃÄØ\n";
+    cfout << "ÄãÓÖË¯¹ıÁËÒ»¸ö¿ÆÄ¿\n";
+    cfout << "ÏÖÔÚÒÑ¾­Ã»ÓĞÊ²Ã´È¥¿¼ÊÔµÄÒâÒåÁË£¬Äã¾ö¶¨\n";
+    cfout << "[1]¼ÌĞøË¯¾õ [2]Á¢¿ÌÇ°ÍùÑ§Ğ£\n";
+}
+void page_4() // ¼ÌĞøË¯¾õ2
+{
+    sleepSubjects++;
+    cfout << "Ë¯Éñ£¬ÄãÓ®ÁË\n";
+    cfout << "Èı³¡¿¼ÊÔ¶¼ÒÑ¾­½áÊøÁË\n";
+    cfout << "¶øÄãÈ´»¹ÔÚ´²ÉÏÊæ·şµÄÌÉ×Å\n";
+    cfout << "ÏÖÔÚ¾ø¶ÔÃ»ÓĞÔÙÈ¥¿¼ÊÔµÄ±ØÒªĞÔÁË£¬Äã¾ö¶¨\n";
+    cfout << "[1]¼ÌĞøË¯¾õ [2]Á¢¿ÌÇ°ÍùÑ§Ğ£\n";
+}
+void page_5() // ½á¾Ö£º²»ĞÑÈËÊÒ£¨Bed End 1£©
+{
+    cfout << "Äã²»½û¶Ô×Ô¼º·¢ÎÊ\n";
+    cfout << "ÕâÑù×öÓĞÊ²Ã´ÒâÒåÂğ\n";
+    cfout << "ÓëÆäÀË·ÑÊ±¼ä£¬²»ÈçÈ¥¿¼³¡Ëæ±ãÃÉÁ½µÀÌâ\n";
+    cfout << "µ«ÏÖÔÚËµÊ²Ã´Ò²Ã»ÓÃÁË\n";
+    cfout << "¿¼ÊÔÒÑ¾­½áÊøÁË£¬ÄãÍêÈ«Ã»ÓĞ×öÄÄÅÂÒ»Ìâ\n";
+    cfout << "ÄãÍ»È»ÏëÆğÄãÖ®Ç°ÍæµÄÄ³¸öÁù×ÖÓÎÏ·µÄÒ»¾ä»°...\n";
+    cfout << "--------------------------------------------------\n";
+    cfout << "----------´ï³É½á¾ÖBed End 1 ¡¾²»ĞÑÈËÊÒ¡¿----------\n";
+    cfout << "--------Ô¸´ËĞĞ£¬ÖÕµÖÈºĞÇ£¬ÇÒÈİÎÒ£¬ÔÙË¯Ò»»á--------\n";
+    cfout << "--------------------------------------------------\n";
+    cfout << "[1]»Øµ½Ö÷²Ëµ¥\n";
+}
+/*void page_6() // Ç°ÍùÑ§Ğ£
+{
+    cfout<<"\n";
 }*/
-
-map<string, PageInformation> pageMap=
-{
-    {"page_main", {page_main, {"page_main", "page_1", "page_intro", "page_setting", "page_changeLog", "page_exit"}}},
-	{"page_exit", {page_exit, {"page_exit"}}},
-    {"page_intro", {page_intro, {"page_intro", "page_main"}}},
-	{"page_setting", {page_setting, {"page_setting", "page_main"}}},
-	{"page_changeLog", {page_changeLog, {"page_changeLog", "page_main"}}},
-    {"page_1", {page_1, {"page_1", "page_2"/*,"page_6"*/}}},
-    {"page_2", {page_2, {"page_2", "page_3"/*,"page_6"*/}}},
-    {"page_3", {page_3, {"page_3", "page_4"/*,"page_6"*/}}},
-    {"page_4", {page_4, {"page_4", "page_5"/*,"page_6"*/}}},
-    {"page_5", {page_5, {"page_5", "page_main"}}},
+map<string, PageInformation> pageMap =
+    {
+        {"page_main", {page_main, {"page_main", "chapter_1", "page_intro", "page_setting", "page_changeLog", "page_exit"}}},
+        {"page_exit", {page_exit, {"page_exit"}}},
+        {"page_intro", {page_intro, {"page_intro", "page_main"}}},
+        {"page_setting", {page_setting, {"page_setting", "page_main", "set_0","set_1"}}},
+        {"set_0", {set_0, {"set_0", "page_setting", "page_setting", "page_setting", "page_setting", "page_setting"}}},
+        {"set_1", {set_1, {"set_1", "page_setting", "page_setting", "page_setting"}}},
+        {"page_changeLog", {page_changeLog, {"page_changeLog", "page_main"}}},
+        {"chapter_1", {chapter_1, {"chapter_1", "page_1"}}},
+        {"page_1", {page_1, {"page_1", "page_2" /*, "page_6"*/}}},
+        {"page_2", {page_2, {"page_2", "page_3" /*, "page_6"*/}}},
+        {"page_3", {page_3, {"page_3", "page_4" /*, "page_6"*/}}},
+        {"page_4", {page_4, {"page_4", "page_5" /*, "page_6"*/}}},
+        {"page_5", {page_5, {"page_5", "page_main"}}},
 };
 #endif

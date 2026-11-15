@@ -1,0 +1,91 @@
+{
+  "page_main": {
+    "text": "轮回答卷26w11a pre2",
+    "effect": "无",
+    "effectCode": "null",
+    "options": [
+      {
+        "text": "开始游戏",
+        "next_page": "page_1"
+      }
+    ]
+  },
+  "page_1": {
+    "text": "叮铃铃铃！\n闹钟响了，你从睡梦中醒来\n你伸了个懒腰，睁开了眼\n一个美丽的早晨，但天阴阴沉沉的，像是要下雨一样\n你突然想起来今天要中考了，但还有半小时就要开考第一科了，你决定\n[1]再睡一会 [2]立刻前往学校\n",
+    "effect": "无",
+    "effectCode": "null",
+    "options": [
+      {
+        "text": "再睡一会",
+        "next_page": "page_2"
+      },
+      {
+        "text": "立刻前往学校",
+        "next_page": "page_6"
+      }
+    ]
+  },
+  "page_2": {
+    "text": "你已经睡过一个科目了\n趁现在起床去考试也许还能拿一些分数\n但你又想着这床如此舒服，而且就算起床也不会有好的成绩，你决定\n[1]继续睡觉 [2]立刻前往学校\n",
+    "effect": "睡过科目+1",
+    "effectCode": "sleepSubjects++",
+    "options": [
+      {
+        "text": "继续睡觉",
+        "next_page": "page_3"
+      },
+      {
+        "text": "立刻前往学校",
+        "next_page": "page_6"
+      }
+    ]
+  },
+  "page_3": {
+    "text": "你真是个睡神\n吉尼斯世界纪录都应该给你颁个奖\n但现在说这些又有什么用呢\n你又睡过了一个科目\n现在已经没有什么去考试的意义了，你决定\n[1]继续睡觉 [2]立刻前往学校\n",
+    "effect": "睡过科目+1",
+    "effectCode": "sleepSubjects++",
+    "options": [
+      {
+        "text": "继续睡觉",
+        "next_page": "page_4"
+      },
+      {
+        "text": "立刻前往学校",
+        "next_page": "page_6"
+      }
+    ]
+  },
+  "page_4": {
+    "text": "睡神，你赢了\n三场考试都已经结束了\n而你却还在床上舒服的躺着\n现在绝对没有再去考试的必要性了，你决定\n[1]继续睡觉 [2]立刻前往学校\n",
+    "effect": "睡过科目+1",
+    "effectCode": "sleepSubjects++",
+    "options": [
+      {
+        "text": "继续睡觉",
+        "next_page": "page_5"
+      },
+      {
+        "text": "立刻前往学校",
+        "next_page": "page_6"
+      }
+    ]
+  },
+  "page_5": {
+    "text": "你不禁对自己发问\n这样做有什么意义吗\n与其浪费时间，不如去考场随便蒙两道题\n但现在说什么也没用了\n考试已经结束了，你完全没有做哪怕一题\n你突然想起你之前玩的某个六字游戏的一句话\n[1]回到主菜单\n",
+    "options": [
+      {
+        "text": "回到主菜单",
+        "next_page": "page_main"
+      }
+    ]
+  },
+  "page_6": {
+    "text": "（前往学校的剧情，待开发）\n[1]回到主菜单\n",
+    "options": [
+      {
+        "text": "回到主菜单",
+        "next_page": "page_main"
+      }
+    ]
+  }
+}
