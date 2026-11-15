@@ -22,8 +22,14 @@
 
 // 导入平台专属库
 #ifdef _WIN32
+    // 解决 C++17 std::byte 与 Windows byte 冲突的宏定义
+    #define WIN32_LEAN_AND_MEAN
+    #define NOMINMAX
+    #define byte win_byte 
     #include <windows.h>
     #include <mmsystem.h>
+    // 取消掉 byte 的宏定义，防止影响后续代码
+    #undef byte
     #define CLEAR_SCREEN system("cls")
     #define PAUSE_PROGRAM system("pause")
     // 以MSVC方式链接库
