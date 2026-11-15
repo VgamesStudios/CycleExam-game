@@ -8,37 +8,37 @@
 #include "function_1.h"
 int main()
 {
-        CLEAR_SCREEN;
-    // Éú³ÉÈÕÖ¾ÎÄ¼şÃû£ºYYYYMMDD_HHMMSS.log£¨ÒÔ³ÌĞòÆô¶¯Ê±¼äÎª×¼£©
-    time_t now = time(nullptr);                                            // »ñÈ¡µ±Ç°Ê±¼ä´Á
-    tm* local_time = localtime(&now);                                      // ×ª»»Îª±¾µØÊ±¼ä½á¹¹
+    CLEAR_SCREEN;
+    // ç”Ÿæˆæ—¥å¿—æ–‡ä»¶åï¼šYYYYMMDD_HHMMSS.logï¼ˆä»¥ç¨‹åºå¯åŠ¨æ—¶é—´ä¸ºå‡†ï¼‰
+    time_t now = time(nullptr);                                            // è·å–å½“å‰æ—¶é—´æˆ³
+    tm* local_time = localtime(&now);                                      // è½¬æ¢ä¸ºæœ¬åœ°æ—¶é—´ç»“æ„
     char filename[64];
-    strftime(filename, sizeof(filename), "%Y%m%d_%H%M%S.log", local_time); // ¸ñÊ½»¯
+    strftime(filename, sizeof(filename), "%Y%m%d_%H%M%S.log", local_time); // æ ¼å¼åŒ–
 
-    fout.open(filename);                                                   // ´ò¿ªÎÄ¼ş
+    fout.open(filename);                                                   // æ‰“å¼€æ–‡ä»¶
     if (!fout.is_open()) 
     {
-        cerr << "¾¯¸æ£ºÎŞ·¨´´½¨ÈÕÖ¾ÎÄ¼ş " << filename << endl;
+        cerr << "è­¦å‘Šï¼šæ— æ³•åˆ›å»ºæ—¥å¿—æ–‡ä»¶ " << filename << endl;
     }
     string current_page = "page_main";
     while (true)
     {
         auto &inf = pageMap[current_page];
         inf.function();
-        int switchs = getNum(1, inf.jump_pages.size() - 1); // »ñÈ¡Ñ¡Ïî
+        int switchs = getNum(1, inf.jump_pages.size() - 1); // è·å–é€‰é¡¹
         if (switchs)
         {
             CLEAR_SCREEN;
         }
 
-        // ÅĞ¶Ïµ±Ç°Ò³ÃæÊÇ·ñÎªÉèÖÃÏîÒ³Ãæ£¨set_0¡¢set_1¡¢set_2...£©
+        // åˆ¤æ–­å½“å‰é¡µé¢æ˜¯å¦ä¸ºè®¾ç½®é¡¹é¡µé¢ï¼ˆset_0ã€set_1ã€set_2...ï¼‰
         static const std::regex setPagePattern(R"(^set_(\d+)$)");
         std::smatch match;
         if (std::regex_match(current_page, match, setPagePattern))
         {
-            // ´ÓÒ³ÃæÃûÖĞÌáÈ¡ÉèÖÃÏîË÷Òı
+            // ä»é¡µé¢åä¸­æå–è®¾ç½®é¡¹ç´¢å¼•
             int setIndex = std::stoi(match[1].str());
-            // ×îºóÒ»¸öÑ¡ÏîÓÀÔ¶ÊÇ¡°·µ»Ø¡±£¬ÆäÓàÓĞĞ§Ñ¡Ïî¶¼ÊÓÎª¡°Ó¦ÓÃÉèÖÃ¡±
+            // æœ€åä¸€ä¸ªé€‰é¡¹æ°¸è¿œæ˜¯â€œè¿”å›â€ï¼Œå…¶ä½™æœ‰æ•ˆé€‰é¡¹éƒ½è§†ä¸ºâ€œåº”ç”¨è®¾ç½®â€
             if (switchs >= 1 && switchs < static_cast<int>(inf.jump_pages.size()) - 1)
             {
                 setApply(setIndex, switchs);

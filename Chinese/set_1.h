@@ -1,6 +1,6 @@
 #ifndef SET_1_H
 #define SET_1_H
-// µ¼Èë¿â
+// å¯¼å…¥åº“
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
@@ -13,16 +13,16 @@
 #include <ctime>
 #include <thread>
 #include <chrono>
-// ÉùÃ÷ÃüÃû¿Õ¼ä
+// å£°æ˜å‘½åç©ºé—´
 using namespace std;
-// ÉùÃ÷º¯Êı
-void setApply(int sP,int sS);// Ó¦ÓÃÉèÖÃ
-// ¶¨ÒåÈ«¾Ö±äÁ¿
-int setProjects[10] = {0};   // ´æ´¢ÉèÖÃÏîµÄÊı×é£¬³õÊ¼ÖµÎª0
+// å£°æ˜å‡½æ•°
+void setApply(int sP,int sS);// åº”ç”¨è®¾ç½®
+// å®šä¹‰å…¨å±€å˜é‡
+int setProjects[10] = {0};   // å­˜å‚¨è®¾ç½®é¡¹çš„æ•°ç»„ï¼Œåˆå§‹å€¼ä¸º0
 int autoRestarterMinutes = 30;
 bool autoRestart = true;
 extern bool debugMode;
-void setApply(int sP,int sS) // Ó¦ÓÃÉèÖÃ
+void setApply(int sP,int sS) // åº”ç”¨è®¾ç½®
 {
     switch(sP)
     {
