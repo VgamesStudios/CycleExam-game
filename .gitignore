@@ -20,3 +20,7 @@ CppProperties.json
 Thumbs.db
 .DS_Store
 desktop.ini
+
+# vim备份文件
+*.un~
+*.*~
