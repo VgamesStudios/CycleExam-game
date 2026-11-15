@@ -1,4 +1,4 @@
-me: Cross-Platform Build
+name: Cross-Platform Build
 
 on:
   push:
